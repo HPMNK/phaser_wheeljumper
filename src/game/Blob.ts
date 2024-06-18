@@ -6,6 +6,7 @@ export class Blob extends Phaser.GameObjects.Container {
     raycastLine: Phaser.GameObjects.Line;
     velocityY: number;
     angleOfCollision: number;
+    isJumping: boolean;
 
     constructor(scene: Phaser.Scene, x: number, y: number, sizeCoefficient: number = 0.0625) {
         super(scene, x, y);
@@ -13,15 +14,14 @@ export class Blob extends Phaser.GameObjects.Container {
 
         this.blobSprite = scene.add.sprite(0, 0, 'blob');
         this.blobSprite.setDisplaySize(scene.scale.width * sizeCoefficient, scene.scale.width * sizeCoefficient);
-
         this.add(this.blobSprite);
 
         this.velocityY = 0;
         this.angleOfCollision = 0;
+        this.isJumping = false;
 
         this.raycastLine = scene.add.line(0, 0, 0, -this.blobSprite.displayHeight / 2, 0, this.blobSprite.displayHeight / 2, 0x00ff00)
             .setOrigin(0.5, 0.5);
-
         this.add(this.raycastLine);
     }
 
@@ -31,8 +31,7 @@ export class Blob extends Phaser.GameObjects.Container {
 
     updateRaycast() {
         this.raycastLine.setTo(0, -this.blobSprite.displayHeight / 2, 0, this.blobSprite.displayHeight / 2);
-        this.raycastLine.setPosition(this.blobSprite.x, this.blobSprite.y);
-        this.raycastLine.setDisplaySize(1, this.blobSprite.displayHeight * 8);
+        this.raycastLine.setPosition(0, 0);
         this.raycastLine.rotation = 0;
     }
 
@@ -46,19 +45,20 @@ export class Blob extends Phaser.GameObjects.Container {
     }
 
     jump() {
-        this.scene.tweens.add({
-            targets: this,
-            y: this.y - 50,
-            duration: 200,
-            yoyo: true,
-            ease: 'Power2',
-            onUpdate: () => {
-                this.updateRaycast();
-            }
-        });
+        console.log('Blob jump triggered');
+        this.isJumping = true;
+        this.velocityY = -15; // Impulsion vers le haut
     }
 
     update() {
         this.updateRaycast();
+
+        if (this.isJumping) {
+            this.applyGravity(0.2); // Appliquer la gravité pendant le saut
+
+            if (this.velocityY >= 0) {
+                this.isJumping = false;
+            }
+        }
     }
 }
