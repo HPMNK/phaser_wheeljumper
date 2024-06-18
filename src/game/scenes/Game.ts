@@ -1,11 +1,13 @@
+// Game.ts
 import { EventBus } from '../EventBus';
 import { Scene } from 'phaser';
-import { CircleObject } from '../CircleObject'; // Assurez-vous d'importer la classe CircleObject
+import { CircleObject } from '../CircleObject';
+import { Blob } from '../Blob'; // Importer la classe Blob
 
 export class Game extends Scene {
     camera: Phaser.Cameras.Scene2D.Camera;
     circleObjects: CircleObject[] = [];
-    blobSprite: Phaser.GameObjects.Sprite;
+    blob: Blob;
     rotationSpeed: number;
     angle: number;
     currentCircle: CircleObject;
@@ -34,9 +36,8 @@ export class Game extends Scene {
         this.circleObjects.push(circle1, circle2);
         this.currentCircle = circle1; // Initialiser le cercle courant
 
-        // Créer le sprite du blob
-        this.blobSprite = this.add.sprite(0, 0, 'blob');
-        this.blobSprite.setDisplaySize(width / 16, width / 16);
+        // Créer le blob
+        this.blob = new Blob(this, 0, 0, 'blob');
 
         // Positionner initialement le blob sur le bord du cercle actuel
         this.updateBlobPosition();
@@ -55,6 +56,7 @@ export class Game extends Scene {
         });
 
         // Mettre à jour la position du blob
+        this.blob.update();
         this.updateBlobPosition();
     }
 
@@ -62,25 +64,18 @@ export class Game extends Scene {
         const { x, y, radius } = this.currentCircle;
 
         // Calculer la nouvelle position du blob avec offset
-        const offsetCoefficient = 0.1; // Ajustez ce coefficient pour rapprocher ou éloigner le blob du eentre du cercle
+        const offsetCoefficient = 0.1; // Ajustez ce coefficient pour rapprocher ou éloigner le blob du centre du cercle
         const adjustedRadius = radius + (radius * offsetCoefficient); // On utilise une valeur relative au radius pour gérer l'offset et le rendre responsive 
 
-        this.blobSprite.x = x + adjustedRadius * Math.cos(this.angle);
-        this.blobSprite.y = y + adjustedRadius * Math.sin(this.angle);
+        this.blob.x = x + adjustedRadius * Math.cos(this.angle);
+        this.blob.y = y + adjustedRadius * Math.sin(this.angle);
 
         // Ajuster la rotation du blob pour qu'il soit orienté vers le centre du cercle
-        this.blobSprite.rotation = this.angle + Math.PI / 2;
+        this.blob.rotation = this.angle + Math.PI / 2;
     }
 
     jump() {
-        // Faire sauter le blob
-        this.tweens.add({
-            targets: this.blobSprite,
-            y: this.blobSprite.y - 50, // Ajuster la hauteur du saut
-            duration: 200,
-            yoyo: true,
-            ease: 'Power2'
-        });
+        this.blob.jump();
 
         // Vérifier les collisions après le saut
         this.checkCollisions();
@@ -88,7 +83,7 @@ export class Game extends Scene {
 
     checkCollisions() {
         this.circleObjects.forEach(circle => {
-            if (this.isColliding(this.blobSprite, circle)) {
+            if (this.isColliding(this.blob, circle)) {
                 this.currentCircle = circle;
             }
         });
