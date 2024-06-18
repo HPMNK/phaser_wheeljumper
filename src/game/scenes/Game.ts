@@ -11,16 +11,22 @@ export class Game extends Scene {
     rotationSpeed: number;
     angle: number;
     currentCircle: CircleObject;
+    isGrounded: boolean;
+    gravity: number;
+
 
     constructor() {
         super('Game');
         this.rotationSpeed = 0.01; // Définit la vitesse de rotation (en radians par frame)
         this.angle = 0; // Angle initial du blob par rapport au cercle
+        this.isGrounded = false; // Initialiser le drapeau au sol
+        this.gravity = 0.1; // Définir la gravité
+
     }
 
     preload() {
         this.load.image('planet', '/assets/pixelplanet.png');
-        this.load.image('blob', '/assets/Blob.png'); // Ajoutez une image pour le blob
+        Blob.preload(this); // Appeler la méthode de préchargement du blob
     }
 
     create() {
@@ -36,11 +42,11 @@ export class Game extends Scene {
         this.circleObjects.push(circle1, circle2);
         this.currentCircle = circle1; // Initialiser le cercle courant
 
-        // Créer le blob
-        this.blob = new Blob(this, 0, 0, 'blob');
+        // Créer le blob en utilisant la texture 'blob'
+        this.blob = new Blob(this, width / 2, 0);
 
-        // Positionner initialement le blob sur le bord du cercle actuel
-        this.updateBlobPosition();
+        // Ajouter le blob à la scène
+        this.add.existing(this.blob);
 
         // Ajouter un gestionnaire d'événements pour faire sauter le blob
         this.input.on('pointerdown', this.jump, this);
@@ -55,9 +61,16 @@ export class Game extends Scene {
             circle.update();
         });
 
-        // Mettre à jour la position du blob
-        this.blob.update();
-        this.updateBlobPosition();
+        // Appliquer la gravité si le blob n'est pas au sol
+        if (!this.isGrounded) {
+            this.blob.applyGravity(this.gravity);
+            this.checkCollisions(); // Vérifier les collisions pour voir si le blob touche un cercle
+        } else {
+            // Mettre à jour la position du blob s'il est au sol
+            this.updateBlobPosition();
+        }
+
+        this.blob.update(); // Appeler la méthode update du blob pour mettre à jour la ligne de raycast
     }
 
     updateBlobPosition() {
@@ -75,23 +88,25 @@ export class Game extends Scene {
     }
 
     jump() {
-        this.blob.jump();
-
-        // Vérifier les collisions après le saut
-        this.checkCollisions();
+        if (this.isGrounded) {
+            this.blob.jump();
+        }
     }
-
     checkCollisions() {
+        let grounded = false;
         this.circleObjects.forEach(circle => {
             if (this.isColliding(this.blob, circle)) {
                 this.currentCircle = circle;
+                grounded = true;
+                this.blob.resetVelocity(); // Réinitialiser la vitesse du blob lorsque celui-ci touche un cercle
             }
         });
+        this.isGrounded = grounded;
     }
 
-    isColliding(sprite: Phaser.GameObjects.Sprite, circle: CircleObject): boolean {
-        const distance = Phaser.Math.Distance.Between(sprite.x, sprite.y, circle.x, circle.y);
-        return distance < circle.radius + sprite.displayWidth / 2;
+    isColliding(blob: Blob, circle: CircleObject): boolean {
+        const distance = Phaser.Math.Distance.Between(blob.x, blob.y, circle.x, circle.y);
+        return distance < circle.radius + blob.blobSprite.displayWidth / 2;
     }
 
     changeScene() {
