@@ -19,6 +19,13 @@ const config: Phaser.Types.Core.GameConfig = {
         forceSetTimeOut: true
 
     },
+    physics: {
+        default: 'arcade',
+        arcade: {
+            gravity: { x: 0, y: 0 }, // Nous ne voulons pas de gravité par défaut
+            debug: true // Activez le mode débogage pour visualiser les corps physiques
+        }
+    },
     scene: [
         Boot,
         Preloader,
