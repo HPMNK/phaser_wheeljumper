@@ -48,6 +48,7 @@ export class Game extends Scene {
         this.blob.update(this.circleObjects);
 
         console.log('isGrounded:', this.blob.isGrounded); // Debug log
+
     }
 
     jump() {

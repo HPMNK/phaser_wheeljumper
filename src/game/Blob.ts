@@ -1,4 +1,3 @@
-// Blob.ts
 import Phaser from 'phaser';
 import { CircleObject } from './CircleObject';
 
@@ -64,35 +63,30 @@ export class Blob extends Phaser.GameObjects.Container {
     jump() {
         console.log('Blob jump triggered');
         this.isJumping = true;
-        this.isGrounded = false;
 
-        if (this.currentCircle) {
-            const jumpForce = 15;
+        if (this.isGrounded) {
+            this.isGrounded = false; // Rendre grounded false immédiatement
 
-            const angle = Phaser.Math.Angle.Between(this.currentCircle.x, this.currentCircle.y, this.x, this.y);
+            if (this.currentCircle) {
+                const jumpForce = 15;
+                const angle = Phaser.Math.Angle.Between(this.currentCircle.x, this.currentCircle.y, this.x, this.y);
 
-            let velocityX = Math.cos(angle) * jumpForce;
-            let velocityY = Math.sin(angle) * jumpForce;
+                this.velocityX = Math.cos(angle) * jumpForce;
+                this.velocityY = Math.sin(angle) * jumpForce;
 
-            if (this.y > this.currentCircle.y) {
-                velocityX = velocityX;
-                velocityY = velocityY;
+                this.lastCircle = this.currentCircle;
+                this.currentCircle = null;
             }
 
-            this.velocityX = velocityX;
-            this.velocityY = velocityY;
-
-            this.lastCircle = this.currentCircle;
-            this.currentCircle = null;
+            this.disableGravityTemporarily();
         }
-
-        this.disableGravityTemporarily();
     }
 
     disableGravityTemporarily() {
         this.gravityEnabled = false;
         this.scene.time.delayedCall(500, () => {
             this.gravityEnabled = true;
+            this.isJumping = false;
         });
     }
 
@@ -107,12 +101,6 @@ export class Blob extends Phaser.GameObjects.Container {
         }
 
         this.checkCollisions(circleObjects);
-
-        if (this.isJumping) {
-            if (this.velocityY >= 0) {
-                this.isJumping = false;
-            }
-        }
     }
 
     updateBlobPosition() {
@@ -136,7 +124,7 @@ export class Blob extends Phaser.GameObjects.Container {
     checkCollisions(circleObjects: CircleObject[]) {
         circleObjects.forEach(circle => {
             if (this.isColliding(circle)) {
-                if (!this.isGrounded && this.velocityY > 0) {
+                if (!this.isGrounded && !this.isJumping) { // Ajout de la vérification de isJumping
                     if (circle !== this.lastCircle || this.isFarEnoughFromLastCircle()) {
                         this.currentCircle = circle;
                         this.isGrounded = true;
