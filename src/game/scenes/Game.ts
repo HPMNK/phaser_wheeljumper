@@ -9,13 +9,10 @@ export class Game extends Scene {
     circleObjects: CircleObject[] = [];
     blob: Blob;
     currentCircle: CircleObject | null = null;
-    isGrounded: boolean;
-    gravity: number;
+    lastCircle: CircleObject | null = null;
 
     constructor() {
         super('Game');
-        this.isGrounded = false;
-        this.gravity = 0.5; // Augmenter la gravité pour des tests plus visibles
     }
 
     preload() {
@@ -48,63 +45,14 @@ export class Game extends Scene {
             circle.update();
         });
 
-        if (!this.isGrounded) {
-            this.blob.applyGravity(this.gravity);
-        } else if (this.currentCircle) {
-            this.updateBlobAngle();
-            this.updateBlobPosition();
-        }
+        this.blob.update(this.circleObjects);
 
-        this.blob.update();
-        this.checkCollisions();
-        console.log('isGrounded:', this.isGrounded); // Debug log
-    }
-
-    updateBlobPosition() {
-        if (this.currentCircle && this.isGrounded) {
-            const { x, y, radius } = this.currentCircle;
-
-            const adjustedRadius = radius * 1.1;
-            this.blob.x = x + adjustedRadius * Math.cos(this.blob.angleOfCollision);
-            this.blob.y = y + adjustedRadius * Math.sin(this.blob.angleOfCollision);
-
-            this.blob.rotation = this.blob.angleOfCollision + Math.PI / 2;
-        }
-    }
-
-    updateBlobAngle() {
-        if (this.currentCircle) {
-            this.blob.angleOfCollision += this.currentCircle.rotationSpeed;
-        }
+        console.log('isGrounded:', this.blob.isGrounded); // Debug log
     }
 
     jump() {
-        if (this.isGrounded) {
-            this.isGrounded = false;
+        if (this.blob.isGrounded) {
             this.blob.jump();
         }
-    }
-
-    checkCollisions() {
-        this.circleObjects.forEach(circle => {
-            if (this.isColliding(this.blob, circle)) {
-                if (!this.isGrounded && this.blob.velocityY > 0) {
-                    this.currentCircle = circle;
-                    this.isGrounded = true;
-                    this.blob.resetVelocity();
-                    this.blob.angleOfCollision = Phaser.Math.Angle.Between(circle.x, circle.y, this.blob.x, this.blob.y);
-                    this.updateBlobPosition();
-                }
-            }
-        });
-    }
-
-    isColliding(blob: Blob, circle: CircleObject): boolean {
-        const distance = Phaser.Math.Distance.Between(blob.x, blob.y, circle.x, circle.y);
-        return distance < circle.radius + blob.blobSprite.displayWidth / 2;
-    }
-
-    changeScene() {
-        this.scene.start('GameOver');
     }
 }
