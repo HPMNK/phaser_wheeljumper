@@ -41,9 +41,9 @@ export class Game extends Scene {
 
         EventBus.emit('current-scene-ready', this);
 
-        this.fpsText = this.add.text(10, 10, '', { font: '16px Arial', color: '#00ff00' });
-        this.fpsText.setScrollFactor(0);
-        this.fpsText.setOrigin(0, 0); // S'assurer que le texte est ancré au bord gauche supérieur
+        this.fpsText = this.add.text(width / 2, height / 2, '', { font: '16px Arial', color: '#00ff00' });
+        this.fpsText.setScrollFactor(0); // Empêche le texte de se déplacer avec la caméra
+        this.fpsText.setOrigin(0.5, 0.5); // Centrer le texte par rapport à ses coordonnées
     }
 
     update(time: number, delta: number) {
