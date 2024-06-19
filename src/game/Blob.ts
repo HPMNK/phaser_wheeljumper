@@ -5,6 +5,7 @@ export class Blob extends Phaser.GameObjects.Container {
     blobSprite: Phaser.GameObjects.Sprite;
     raycastLine: Phaser.GameObjects.Line;
     velocityY: number;
+    velocityX: number; // Ajoutez cette propriété
     angleOfCollision: number;
     isJumping: boolean;
 
@@ -17,6 +18,7 @@ export class Blob extends Phaser.GameObjects.Container {
         this.add(this.blobSprite);
 
         this.velocityY = 0;
+        this.velocityX = 0; // Initialisez la vélocité X
         this.angleOfCollision = 0;
         this.isJumping = false;
 
@@ -38,16 +40,22 @@ export class Blob extends Phaser.GameObjects.Container {
     applyGravity(gravity: number) {
         this.velocityY += gravity;
         this.y += this.velocityY;
+        this.x += this.velocityX; // Appliquez la vélocité X
     }
 
     resetVelocity() {
         this.velocityY = 0;
+        this.velocityX = 0; // Réinitialisez la vélocité X
     }
 
     jump() {
         console.log('Blob jump triggered');
         this.isJumping = true;
-        this.velocityY = -15; // Impulsion vers le haut
+
+        // Calculez la direction du saut en fonction de l'angle de collision
+        const jumpForce = 15;
+        this.velocityY = -jumpForce * Math.sin(this.angleOfCollision);
+        this.velocityX = jumpForce * Math.cos(this.angleOfCollision);
     }
 
     update() {
