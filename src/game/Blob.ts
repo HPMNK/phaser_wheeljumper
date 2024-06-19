@@ -124,7 +124,7 @@ export class Blob extends Phaser.GameObjects.Container {
     checkCollisions(circleObjects: CircleObject[]) {
         circleObjects.forEach(circle => {
             if (this.isColliding(circle)) {
-                if (!this.isGrounded && !this.isJumping) { // Ajout de la vérification de isJumping
+                if (!this.isGrounded && (circle !== this.lastCircle || !this.isJumping)) {
                     if (circle !== this.lastCircle || this.isFarEnoughFromLastCircle()) {
                         this.currentCircle = circle;
                         this.isGrounded = true;
@@ -136,7 +136,6 @@ export class Blob extends Phaser.GameObjects.Container {
             }
         });
     }
-
     isColliding(circle: CircleObject): boolean {
         const distance = Phaser.Math.Distance.Between(this.x, this.y, circle.x, circle.y);
         return distance < circle.radius + this.blobSprite.displayWidth / 2;
