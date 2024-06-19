@@ -13,6 +13,12 @@ const config: Phaser.Types.Core.GameConfig = {
     height: 768,
     parent: 'game-container',
     backgroundColor: '#028af8',
+    fps: {
+        target: 60,
+        min: 30,
+        forceSetTimeOut: true
+
+    },
     scene: [
         Boot,
         Preloader,
@@ -20,6 +26,7 @@ const config: Phaser.Types.Core.GameConfig = {
         MainGame,
         GameOver
     ]
+
 };
 
 const StartGame = (parent: string) => {

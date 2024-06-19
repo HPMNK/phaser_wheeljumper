@@ -90,7 +90,7 @@ export class Blob extends Phaser.GameObjects.Container {
         });
     }
 
-    update(circleObjects: CircleObject[], delta: number) {
+    update(circleObjects: CircleObject[]) {
         this.updateRaycast();
 
         if (!this.isGrounded) {
@@ -107,13 +107,16 @@ export class Blob extends Phaser.GameObjects.Container {
         if (this.currentCircle && this.isGrounded) {
             const { x, y, radius } = this.currentCircle;
 
+            // Utiliser l'angle de rotation actuel du cercle pour définir la position du Blob
             const adjustedRadius = radius * 1.1;
             this.x = x + adjustedRadius * Math.cos(this.angleOfCollision);
             this.y = y + adjustedRadius * Math.sin(this.angleOfCollision);
 
+            // Mettre à jour l'angle de rotation du Blob pour suivre le cercle
             this.rotation = this.angleOfCollision + Math.PI / 2;
         }
     }
+
 
     updateBlobAngle() {
         if (this.currentCircle) {

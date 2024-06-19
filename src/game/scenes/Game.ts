@@ -29,7 +29,7 @@ export class Game extends Scene {
         const { width, height } = this.scale;
 
         const circle1 = new CircleObject(this, width / 2, height / 2, 'planet', 0.01, 1.3);
-        const circle2 = new CircleObject(this, width / 3, height / 3, 'planet', 0.02, 0.5);
+        const circle2 = new CircleObject(this, width / 3, height / 3, 'planet', 0.05, 0.5);
 
         this.circleObjects.push(circle1, circle2);
 
@@ -51,7 +51,7 @@ export class Game extends Scene {
             circle.update();
         });
 
-        this.blob.update(this.circleObjects, delta);
+        this.blob.update(this.circleObjects);
 
         this.fpsText.setText('FPS: ' + this.game.loop.actualFps.toFixed(2)); // Afficher les FPS
 
