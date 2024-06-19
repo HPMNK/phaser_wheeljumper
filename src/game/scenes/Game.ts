@@ -51,7 +51,7 @@ export class Game extends Scene {
             circle.update();
         });
 
-        this.blob.update(this.circleObjects);
+        this.blob.update(this.circleObjects, delta);
 
         this.fpsText.setText('FPS: ' + this.game.loop.actualFps.toFixed(2)); // Afficher les FPS
 

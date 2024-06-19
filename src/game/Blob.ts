@@ -90,7 +90,7 @@ export class Blob extends Phaser.GameObjects.Container {
         });
     }
 
-    update(circleObjects: CircleObject[]) {
+    update(circleObjects: CircleObject[], delta: number) {
         this.updateRaycast();
 
         if (!this.isGrounded) {
