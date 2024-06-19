@@ -12,6 +12,7 @@ export class Game extends Scene {
     lastCircle: CircleObject | null = null;
     fpsText: Phaser.GameObjects.Text; // Ajout de la propriété fpsText
 
+
     constructor() {
         super('Game');
     }
@@ -40,7 +41,7 @@ export class Game extends Scene {
 
         EventBus.emit('current-scene-ready', this);
 
-        this.fpsText = this.add.text(10, 10, '', { font: '16px Arial', fill: '#00ff00' });
+        this.fpsText = this.add.text(10, 10, '', { font: '16px Arial', color: '#00ff00' });
         this.fpsText.setScrollFactor(0);
     }
 
@@ -55,7 +56,6 @@ export class Game extends Scene {
 
         console.log('isGrounded:', this.blob.isGrounded); // Debug log
     }
-
     jump() {
         if (this.blob.isGrounded) {
             this.blob.jump();
