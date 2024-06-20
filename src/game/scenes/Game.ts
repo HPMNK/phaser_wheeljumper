@@ -14,6 +14,12 @@ export class Game extends Scene {
     score: number;
     circleGroup: Phaser.Physics.Arcade.StaticGroup;
 
+
+    // Paramètres pour le spawn des cercles
+    minRadius: number = 0.80;
+    maxRadius: number = 3;
+    minDistance: number = 20;
+
     constructor() {
         super('Game');
         this.score = 0;
@@ -34,13 +40,9 @@ export class Game extends Scene {
 
         this.circleGroup = this.physics.add.staticGroup();
 
-        const circle1 = new CircleObject(this, width / 2, height / 2, 'planet', 0.01, 1.3);
-        const circle2 = new CircleObject(this, width / 3, height / 3, 'planet', 0.05, 0.5);
+        this.generateCircles(width, height, 10);
 
-        this.circleObjects.push(circle1, circle2);
 
-        this.circleGroup.add(circle1);
-        this.circleGroup.add(circle2);
 
         this.blob = new Blob(this, width / 2, 0);
 
@@ -94,4 +96,43 @@ export class Game extends Scene {
             this.blob.jump();
         }
     }
+
+    generateCircles(width: number, height: number, numCircles: number) {
+        for (let i = 0; i < numCircles; i++) {
+            let valid = false;
+            let x: number = 0;
+            let y: number = 0;
+            let radius: number = 0;
+            let attempts = 0;
+            const maxAttempts = 100; // Limiter le nombre de tentatives
+
+            while (!valid && attempts < maxAttempts) {
+                radius = Phaser.Math.FloatBetween(this.minRadius, this.maxRadius) * (this.scale.width / 16); // Ajuster ici
+
+                x = Phaser.Math.Between(radius, width - radius);
+                y = Phaser.Math.Between(radius, height - radius);
+
+                valid = true;
+                for (const circle of this.circleObjects) {
+                    const dist = Phaser.Math.Distance.Between(x, y, circle.x, circle.y);
+                    // Vérifier la distance en incluant les rayons des cercles
+                    const requiredDistance = circle.displayWidth / 2 + radius + this.minDistance;
+                    if (dist < requiredDistance) {
+                        valid = false;
+                        break;
+                    }
+                }
+
+                attempts++;
+            }
+
+            if (valid) {
+                // Utiliser le radius généré pour définir la taille du cercle
+                const newCircle = new CircleObject(this, x, y, 'planet', Phaser.Math.FloatBetween(0.01, 0.05), radius / (this.scale.width / 16));
+                this.circleObjects.push(newCircle);
+                this.circleGroup.add(newCircle);
+            }
+        }
+    }
+
 }
