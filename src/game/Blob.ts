@@ -21,6 +21,9 @@ export class Blob extends Phaser.GameObjects.Container {
         this.blobSprite.setDisplaySize(scene.scale.width * sizeCoefficient, scene.scale.width * sizeCoefficient);
         this.add(this.blobSprite);
 
+        this.blobSprite.setPipeline('TextureTintPipeline');
+        this.blobSprite.texture.setFilter(Phaser.Textures.FilterMode.NEAREST);
+
         this.velocityY = 0;
         this.velocityX = 0;
         this.angleOfCollision = 0;
