@@ -9,7 +9,7 @@ export class Game extends Scene {
     blob: Blob;
     currentCircle: CircleObject | null = null;
     lastCircle: CircleObject | null = null;
-    fpsText: Phaser.GameObjects.Text;
+    fpsText: Phaser.GameObjects.Text; // Ajout de la propriété fpsText
     scoreText: Phaser.GameObjects.Text;
     score: number;
     circleGroup: Phaser.Physics.Arcade.StaticGroup;
@@ -48,11 +48,17 @@ export class Game extends Scene {
 
         EventBus.emit('current-scene-ready', this);
 
-        this.fpsText = this.add.text(width - 10, 10, '', { font: '16px Arial', color: '#00ff00' }).setOrigin(1, 0);
-        this.fpsText.setScrollFactor(0);
+        // Vérifier les coordonnées et le style du texte
+        this.fpsText = this.add.text(width / 2, height / 2, '', { font: '16px Arial', color: '#00ff00' });
+        this.fpsText.setScrollFactor(0); // Empêche le texte de se déplacer avec la caméra
+        this.fpsText.setOrigin(0.5, 0.5); // Centrer le texte par rapport à ses coordonnées
 
         this.scoreText = this.add.text(10, 10, 'Score: 0', { font: '16px Arial', color: '#ffffff' }).setOrigin(0, 0);
         this.scoreText.setScrollFactor(0);
+
+        // Vérifier la visibilité du texte
+        this.fpsText.setVisible(true);
+        this.scoreText.setVisible(true);
 
         this.physics.add.collider(this.blob.blobSprite, this.circleGroup, this.handleBlobCollision as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, undefined, this);
     }
