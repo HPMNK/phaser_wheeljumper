@@ -21,6 +21,8 @@ export class Game extends Scene {
 
     preload() {
         this.load.image('planet', '/assets/pixelplanet.png');
+        this.load.spritesheet('blobSheet', '/assets/Blobsheet.png', { frameWidth: 48, frameHeight: 48 });
+
         Blob.preload(this);
     }
 
@@ -43,6 +45,8 @@ export class Game extends Scene {
         this.blob = new Blob(this, width / 2, 0);
 
         this.add.existing(this.blob);
+        this.blob.create(); // Appeler la méthode create de Blob pour initialiser les animations
+
 
         this.input.on('pointerdown', this.jump, this);
 
