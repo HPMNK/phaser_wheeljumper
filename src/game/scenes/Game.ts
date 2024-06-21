@@ -27,6 +27,8 @@ export class Game extends Scene {
 
     preload() {
         this.load.image('planet', '/assets/pixelplanet.png');
+        this.load.image('planetMed', '/assets/pixelplanet70px.png');
+        this.load.image('planetBig', '/assets/pixelplanet100px.png');
         this.load.spritesheet('blobSheet', '/assets/Blobsheet.png', { frameWidth: 48, frameHeight: 48 });
 
         Blob.preload(this);
@@ -83,7 +85,6 @@ export class Game extends Scene {
         this.score += delta / 1000;
         this.scoreText.setText('Score: ' + Math.floor(this.score));
 
-        console.log('isGrounded:', this.blob.isGrounded);
 
         if (!this.blob.isGrounded) {
             this.cameras.main.startFollow(this.blob, true, 0.1, 0.3); // Les paramètres 0.1 et 0.1 sont des valeurs de lerp pour l'inertie
@@ -137,8 +138,22 @@ export class Game extends Scene {
 
                 const rotationSpeed = Phaser.Math.FloatBetween(0.01, 0.05) * (Phaser.Math.Between(0, 1) ? 1 : -1);
 
+
                 // Utiliser le radius généré pour définir la taille du cercle
                 const newCircle = new CircleObject(this, x, y, 'planet', rotationSpeed, radius / (this.scale.width / 16));
+
+                if (radius < (70)) {
+                    newCircle.setTexture('planet');
+                } else if (radius < 120) {
+                    newCircle.setTexture('planetMed');
+                } else {
+                    newCircle.setTexture('planetBig');
+                }
+                newCircle.setDisplaySize(radius * 2, radius * 2); // Ajuster la taille du sprite pour qu'il corresponde au radius
+                newCircle.setCircle(newCircle.width / 2); // Ajuster le collider pour qu'il corresponde au radius
+                console.log(newCircle.radius);
+
+
                 this.circleObjects.push(newCircle);
                 this.circleGroup.add(newCircle);
             }
