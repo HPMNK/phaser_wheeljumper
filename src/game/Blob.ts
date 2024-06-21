@@ -146,6 +146,11 @@ export class Blob extends Phaser.GameObjects.Container {
         this.blobSprite.play('land').once('animationcomplete', () => {
             this.blobSprite.play('idle');
         });
+
+        this.scene.cameras.main.stopFollow();
+
+
+
     }
 
     jump() {
@@ -156,7 +161,7 @@ export class Blob extends Phaser.GameObjects.Container {
             this.isGrounded = false;
 
             if (this.currentCircle) {
-                const jumpForce = 15;
+                const jumpForce = 7;
                 const angle = Phaser.Math.Angle.Between(this.currentCircle.x, this.currentCircle.y, this.x, this.y);
 
                 this.velocityX = Math.cos(angle) * jumpForce;
@@ -174,6 +179,9 @@ export class Blob extends Phaser.GameObjects.Container {
             this.blobSprite.play('jumpLaunch').once('animationcomplete', () => {
                 this.blobSprite.setFrame(11); // Fixer sur la dernière frame de l'animation
             });
+
+            this.scene.cameras.main.startFollow(this, true, 2, 2);
+
         }
     }
 

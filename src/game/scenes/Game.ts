@@ -67,6 +67,8 @@ export class Game extends Scene {
         this.scoreText.setVisible(true);
 
         this.physics.add.collider(this.blob.blobSprite, this.circleGroup, this.handleBlobCollision as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, undefined, this);
+
+
     }
 
     update(time: number, delta: number) {
@@ -82,6 +84,11 @@ export class Game extends Scene {
         this.scoreText.setText('Score: ' + Math.floor(this.score));
 
         console.log('isGrounded:', this.blob.isGrounded);
+
+        if (!this.blob.isGrounded) {
+            this.cameras.main.startFollow(this.blob, true, 0.1, 0.3); // Les paramètres 0.1 et 0.1 sont des valeurs de lerp pour l'inertie
+
+        }
     }
 
     handleBlobCollision(blobSprite: Phaser.Physics.Arcade.Sprite, circleSprite: Phaser.Physics.Arcade.Sprite) {
@@ -127,8 +134,11 @@ export class Game extends Scene {
             }
 
             if (valid) {
+
+                const rotationSpeed = Phaser.Math.FloatBetween(0.01, 0.05) * (Phaser.Math.Between(0, 1) ? 1 : -1);
+
                 // Utiliser le radius généré pour définir la taille du cercle
-                const newCircle = new CircleObject(this, x, y, 'planet', Phaser.Math.FloatBetween(0.01, 0.05), radius / (this.scale.width / 16));
+                const newCircle = new CircleObject(this, x, y, 'planet', rotationSpeed, radius / (this.scale.width / 16));
                 this.circleObjects.push(newCircle);
                 this.circleGroup.add(newCircle);
             }
