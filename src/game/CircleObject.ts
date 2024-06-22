@@ -26,5 +26,9 @@ export class CircleObject extends Phaser.Physics.Arcade.Sprite {
 
     update() {
         this.rotation += this.rotationSpeed;
+        const container = this.getData('container');
+        if (container) {
+            container.rotation += this.rotationSpeed;
+        }
     }
 }

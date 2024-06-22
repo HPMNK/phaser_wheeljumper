@@ -17,8 +17,8 @@ export class Game extends Scene {
 
     // Paramètres pour le spawn des cercles
     minRadius: number = 0.80;
-    maxRadius: number = 3;
-    minDistance: number = 20;
+    maxRadius: number = 3.2;
+    minDistance: number = 50;
 
     constructor() {
         super('Game');
@@ -156,8 +156,38 @@ export class Game extends Scene {
 
                 this.circleObjects.push(newCircle);
                 this.circleGroup.add(newCircle);
+                this.generateKillzones(newCircle, Phaser.Math.Between(1, 3)); // Placer entre 1 et 3 killzones par cercle
+
             }
         }
+    }
+
+    generateKillzones(circle: CircleObject, numKillzones: number) {
+        const killzones: Phaser.GameObjects.Rectangle[] = [];
+        const radius = circle.radius;
+
+        const container = this.add.container(circle.x, circle.y);
+        container.setSize(circle.displayWidth, circle.displayHeight);
+        this.physics.world.enable(container);
+
+        for (let i = 0; i < numKillzones; i++) {
+            let angle: number, x: number, y: number, overlap: boolean;
+
+            do {
+                angle = Phaser.Math.FloatBetween(0, Math.PI * 2);
+                x = radius * Math.cos(angle);
+                y = radius * Math.sin(angle);
+
+                overlap = killzones.some(kz => Phaser.Math.Distance.Between(x, y, kz.x, kz.y) < 20); // Ajuster la distance minimale entre les killzones
+            } while (overlap);
+
+            const killzone = this.add.rectangle(x, y, 10, 10, 0x8a2be2); // Petit carré violet
+            killzone.setOrigin(0.5, 0.5);
+            container.add(killzone);
+            killzones.push(killzone);
+        }
+
+        circle.setData('container', container);
     }
 
 }
