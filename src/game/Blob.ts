@@ -70,10 +70,20 @@ export class Blob extends Phaser.GameObjects.Container {
             frameRate: 17,
             repeat: 0
         });
+
+        this.scene.anims.create({
+            key: 'death',
+            frames: this.scene.anims.generateFrameNumbers('blobSheet', { start: 22, end: 31 }),
+            frameRate: 17,
+            repeat: 0
+        });
     }
 
+    update(circleObjects: CircleObject[], killzones: Phaser.Physics.Arcade.Group) {
+        if (this.checkKillzoneCollisions(killzones)) {
+            return; // Arrêter la mise à jour si une collision avec une killzone est détectée
+        }
 
-    update(circleObjects: CircleObject[]) {
         if (!this.isGrounded) {
             this.applyGravity();
         } else if (this.currentCircle) {
@@ -82,6 +92,18 @@ export class Blob extends Phaser.GameObjects.Container {
         }
 
         this.checkCollisions(circleObjects);
+    }
+
+    checkKillzoneCollisions(killzones: Phaser.Physics.Arcade.Group): boolean {
+        let collisionDetected = false;
+        killzones.children.entries.forEach((killzone) => {
+            const killzoneRect = killzone as Phaser.GameObjects.Rectangle;
+            if (this.scene.physics.overlap(this.blobSprite, killzoneRect)) {
+                this.die();
+                collisionDetected = true;
+            }
+        });
+        return collisionDetected;
     }
 
     applyGravity() {
@@ -154,7 +176,6 @@ export class Blob extends Phaser.GameObjects.Container {
     }
 
     jump() {
-        console.log('Blob jump triggered');
         this.isJumping = true;
 
         if (this.isGrounded) {
@@ -180,7 +201,7 @@ export class Blob extends Phaser.GameObjects.Container {
                 this.blobSprite.setFrame(11); // Fixer sur la dernière frame de l'animation
             });
 
-            this.scene.cameras.main.startFollow(this, true, 2, 2);
+            this.scene.cameras.main.startFollow(this, true, 0.5, 0.5);
 
         }
     }
@@ -198,5 +219,18 @@ export class Blob extends Phaser.GameObjects.Container {
     resetVelocity() {
         this.velocityY = 0;
         this.velocityX = 0;
+    }
+
+    die() {
+
+        const body = this.blobSprite.body as Phaser.Physics.Arcade.Body;
+        body.destroy();
+
+        this.blobSprite.play('death').once('animationcomplete', () => {
+            this.blobSprite.destroy(); // Détruire le blob après l'animation
+            this.scene.time.delayedCall(1000, () => {
+                this.scene.scene.start('GameOver');
+            });
+        });
     }
 }
