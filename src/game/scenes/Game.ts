@@ -2,6 +2,7 @@ import { EventBus } from '../EventBus';
 import Phaser, { Scene } from 'phaser';
 import { CircleObject } from '../CircleObject';
 import { Blob } from '../Blob';
+import { Killzone } from '../Killzone'; // Importer la classe Killzone
 
 export class Game extends Scene {
     camera: Phaser.Cameras.Scene2D.Camera;
@@ -13,7 +14,7 @@ export class Game extends Scene {
     scoreText: Phaser.GameObjects.Text;
     score: number;
     circleGroup: Phaser.Physics.Arcade.StaticGroup;
-    killzonesGroup: Phaser.Physics.Arcade.Group; // Utiliser un groupe normal au lieu d'un static group
+    killzonesGroup: Phaser.Physics.Arcade.Group; // Utiliser un groupe normal pour les killzones
 
     // Paramètres pour le spawn des cercles
     minRadius: number = 0.80;
@@ -30,9 +31,7 @@ export class Game extends Scene {
         this.load.image('planetMed', '/assets/pixelplanet70px.png');
         this.load.image('planetBig', '/assets/pixelplanet100px.png');
         this.load.spritesheet('blobSheet', '/assets/Blobsheet.png', { frameWidth: 48, frameHeight: 48 });
-        this.load.image('spike', '/assets/Spike.png'); // Charger le sprite Spike
-
-
+        Killzone.preload(this); // Charger le sprite Spike via Killzone
         Blob.preload(this);
     }
 
@@ -107,7 +106,7 @@ export class Game extends Scene {
     }
 
     generateKillzones(circle: CircleObject, numKillzones: number) {
-        const killzones: Phaser.GameObjects.Sprite[] = [];
+        const killzones: Killzone[] = [];
         const radius = circle.radius;
         const offset = 10; // Offset vers l'extérieur du cercle
 
@@ -126,14 +125,8 @@ export class Game extends Scene {
                 overlap = killzones.some(kz => Phaser.Math.Distance.Between(x, y, kz.x, kz.y) < 20);
             } while (overlap);
 
-            const killzone = this.add.sprite(x, y, 'spike'); // Utiliser le sprite Spike
-            killzone.setOrigin(0.5, 0.5);
-            killzone.setDisplaySize(30, 30); // Ajuster la taille des pics si nécessaire
-
-            this.physics.world.enable(killzone);
+            const killzone = new Killzone(this, x, y);
             const body = killzone.body as Phaser.Physics.Arcade.Body;
-            body.setSize(killzone.displayWidth * 0.5, killzone.displayHeight * 0.5);
-            body.setOffset(0, killzone.displayHeight * 0.25);
 
             // Calculer l'angle entre le centre du cercle et la position du pic pour la rotation
             const spikeAngle = Phaser.Math.Angle.Between(0, 0, x, y);
@@ -195,7 +188,7 @@ export class Game extends Scene {
                 this.circleObjects.push(newCircle);
                 this.circleGroup.add(newCircle);
 
-                this.generateKillzones(newCircle, Phaser.Math.Between(1, 1)); // Placer entre 1 et 3 killzones par cercle
+                this.generateKillzones(newCircle, Phaser.Math.Between(1, 3)); // Placer entre 1 et 3 killzones par cercle
             }
         }
     }

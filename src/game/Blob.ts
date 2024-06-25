@@ -12,12 +12,13 @@ export class Blob extends Phaser.GameObjects.Container {
     gravity: number;
     currentCircle: CircleObject | null;
     lastCircle: CircleObject | null;
+    isDead: boolean; // Ajouter un flag pour suivre l'état de mort
 
     constructor(scene: Phaser.Scene, x: number, y: number, sizeCoefficient: number = 0.1) {
         super(scene, x, y);
         scene.add.existing(this);
 
-        this.blobSprite = scene.add.sprite(0, 0, 'blobSheet', 11); // Initialiser avec la frame 12 (index 11)
+        this.blobSprite = scene.add.sprite(0, 0, 'blobSheet', 11);
         this.blobSprite.setDisplaySize(scene.scale.width * sizeCoefficient, scene.scale.width * sizeCoefficient);
         this.add(this.blobSprite);
 
@@ -33,15 +34,13 @@ export class Blob extends Phaser.GameObjects.Container {
         this.gravity = 0.5;
         this.currentCircle = null;
         this.lastCircle = null;
+        this.isDead = false; // Initialiser le flag à false
 
         scene.physics.world.enable(this.blobSprite);
         const body = this.blobSprite.body as Phaser.Physics.Arcade.Body;
-        body.setCircle(this.blobSprite.width / 4); // 24 est la moitié de 48, ce qui correspond au rayon pour une tile de 48x48
-        body.setOffset(this.blobSprite.width / 4, this.blobSprite.height / 4); // Centrer le corps physique sur le sprite
+        body.setCircle(this.blobSprite.width / 4);
+        body.setOffset(this.blobSprite.width / 4, this.blobSprite.height / 4);
         body.setAllowGravity(false);
-
-
-
     }
 
     static preload(scene: Phaser.Scene) {
@@ -49,7 +48,6 @@ export class Blob extends Phaser.GameObjects.Container {
     }
 
     create() {
-        // Créer les animations
         this.scene.anims.create({
             key: 'idle',
             frames: this.scene.anims.generateFrameNumbers('blobSheet', { start: 0, end: 7 }),
@@ -80,30 +78,17 @@ export class Blob extends Phaser.GameObjects.Container {
     }
 
     update(circleObjects: CircleObject[], killzones: Phaser.Physics.Arcade.Group) {
-        if (this.checkKillzoneCollisions(killzones)) {
-            return; // Arrêter la mise à jour si une collision avec une killzone est détectée
-        }
-
-        if (!this.isGrounded) {
-            this.applyGravity();
-        } else if (this.currentCircle) {
-            this.updateBlobAngle();
-            this.updateBlobPosition();
-        }
-
-        this.checkCollisions(circleObjects);
-    }
-
-    checkKillzoneCollisions(killzones: Phaser.Physics.Arcade.Group): boolean {
-        let collisionDetected = false;
-        killzones.children.entries.forEach((killzone) => {
-            const killzoneRect = killzone as Phaser.GameObjects.Rectangle;
-            if (this.scene.physics.overlap(this.blobSprite, killzoneRect)) {
-                this.die();
-                collisionDetected = true;
+        if (this.isDead) return; // Ne pas exécuter si déjà mort
+        if (this.blobSprite) {
+            if (!this.isGrounded) {
+                this.applyGravity();
+            } else if (this.currentCircle) {
+                this.updateBlobAngle();
+                this.updateBlobPosition();
             }
-        });
-        return collisionDetected;
+
+            this.checkCollisions(circleObjects);
+        }
     }
 
     applyGravity() {
@@ -133,15 +118,18 @@ export class Blob extends Phaser.GameObjects.Container {
     }
 
     checkCollisions(circleObjects: CircleObject[]) {
-        circleObjects.forEach(circle => {
-            if (this.isColliding(circle)) {
-                if (!this.isGrounded && (circle !== this.lastCircle || !this.isJumping)) {
-                    if (circle !== this.lastCircle || this.isFarEnoughFromLastCircle()) {
-                        this.attachToCircle(circle);
+        if (this.isDead) return; // Ne pas exécuter si déjà mort
+        if (this.blobSprite) {
+            circleObjects.forEach(circle => {
+                if (this.isColliding(circle)) {
+                    if (!this.isGrounded && (circle !== this.lastCircle || !this.isJumping)) {
+                        if (circle !== this.lastCircle || this.isFarEnoughFromLastCircle()) {
+                            this.attachToCircle(circle);
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
     }
 
     isColliding(circle: CircleObject): boolean {
@@ -156,29 +144,32 @@ export class Blob extends Phaser.GameObjects.Container {
     }
 
     attachToCircle(circle: CircleObject) {
-        this.currentCircle = circle;
-        this.isGrounded = true;
-        this.resetVelocity();
-        this.angleOfCollision = Phaser.Math.Angle.Between(circle.x, circle.y, this.x, this.y);
-        this.updateBlobPosition();
+        if (this.isDead) return; // Ne pas exécuter si déjà mort
+        if (this.blobSprite) {
+            this.currentCircle = circle;
+            this.isGrounded = true;
+            this.resetVelocity();
+            this.angleOfCollision = Phaser.Math.Angle.Between(circle.x, circle.y, this.x, this.y);
+            this.updateBlobPosition();
 
-        const body = this.blobSprite.body as Phaser.Physics.Arcade.Body;
-        body.moves = false; // Désactiver les mouvements automatiques du corps pour simuler un joint
+            const body = this.blobSprite.body as Phaser.Physics.Arcade.Body;
+            body.moves = false; // Désactiver les mouvements automatiques du corps pour simuler un joint
 
-        this.blobSprite.play('land').once('animationcomplete', () => {
-            this.blobSprite.play('idle');
-        });
+            this.blobSprite.play('land').once('animationcomplete', () => {
+                if (this.blobSprite && !this.isDead) { // Vérifier si blobSprite existe et n'est pas mort
+                    this.blobSprite.play('idle');
+                }
+            });
 
-        this.scene.cameras.main.stopFollow();
-
-
-
+            this.scene.cameras.main.stopFollow();
+        }
     }
 
     jump() {
-        this.isJumping = true;
-
-        if (this.isGrounded) {
+        if (this.isDead) return; // Ne pas exécuter si déjà mort
+        if (this.isGrounded && this.blobSprite) {
+            console.log('Blob jump triggered');
+            this.isJumping = true;
             this.isGrounded = false;
 
             if (this.currentCircle) {
@@ -198,11 +189,12 @@ export class Blob extends Phaser.GameObjects.Container {
             body.moves = true; // Réactiver les mouvements automatiques du corps pour simuler un saut
 
             this.blobSprite.play('jumpLaunch').once('animationcomplete', () => {
-                this.blobSprite.setFrame(11); // Fixer sur la dernière frame de l'animation
+                if (this.blobSprite && !this.isDead) { // Vérifier si blobSprite existe et n'est pas mort
+                    this.blobSprite.setFrame(11); // Fixer sur la dernière frame de l'animation
+                }
             });
 
             this.scene.cameras.main.startFollow(this, true, 0.5, 0.5);
-
         }
     }
 
@@ -211,8 +203,9 @@ export class Blob extends Phaser.GameObjects.Container {
         this.scene.time.delayedCall(500, () => {
             this.gravityEnabled = true;
             this.isJumping = false;
-            this.blobSprite.setFrame(11);
-
+            if (this.blobSprite && !this.isDead) { // Vérifier si blobSprite existe et n'est pas mort
+                this.blobSprite.setFrame(11);
+            }
         });
     }
 
@@ -222,14 +215,18 @@ export class Blob extends Phaser.GameObjects.Container {
     }
 
     die() {
+        if (this.isDead) return; // Ne pas exécuter si déjà mort
+        this.isDead = true; // Mettre le flag à true
 
+        // Détruire le corps physique pour empêcher d'autres collisions
         const body = this.blobSprite.body as Phaser.Physics.Arcade.Body;
         body.destroy();
 
+        // Jouer l'animation de mort
         this.blobSprite.play('death').once('animationcomplete', () => {
             this.blobSprite.destroy(); // Détruire le blob après l'animation
             this.scene.time.delayedCall(1000, () => {
-                this.scene.scene.start('GameOver');
+                //  this.scene.scene.start('GameOver');
             });
         });
     }
