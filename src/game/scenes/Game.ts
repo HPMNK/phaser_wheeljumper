@@ -8,6 +8,7 @@ export class Game extends Scene {
     camera: Phaser.Cameras.Scene2D.Camera;
     circleObjects: CircleObject[] = [];
     blob: Blob;
+    killzone: Killzone;
     currentCircle: CircleObject | null = null;
     lastCircle: CircleObject | null = null;
     fpsText: Phaser.GameObjects.Text;
@@ -51,6 +52,7 @@ export class Game extends Scene {
         this.add.existing(this.blob);
         this.blob.create();
 
+
         this.input.on('pointerdown', this.jump, this);
 
         EventBus.emit('current-scene-ready', this);
@@ -73,7 +75,7 @@ export class Game extends Scene {
 
     update(time: number, delta: number) {
         this.circleObjects.forEach(circle => {
-            circle.update();
+            circle.update(time, delta);
         });
 
         this.blob.update(this.circleObjects, this.killzonesGroup);
@@ -110,10 +112,6 @@ export class Game extends Scene {
         const radius = circle.radius;
         const offset = 10; // Offset vers l'extérieur du cercle
 
-        const container = this.add.container(circle.x, circle.y);
-        container.setSize(circle.displayWidth, circle.displayHeight);
-        this.physics.world.enable(container);
-
         for (let i = 0; i < numKillzones; i++) {
             let angle: number, x: number, y: number, overlap: boolean;
 
@@ -125,21 +123,20 @@ export class Game extends Scene {
                 overlap = killzones.some(kz => Phaser.Math.Distance.Between(x, y, kz.x, kz.y) < 20);
             } while (overlap);
 
-            const killzone = new Killzone(this, x, y);
-            const body = killzone.body as Phaser.Physics.Arcade.Body;
+            const killzone = new Killzone(this, circle.x + x, circle.y + y);
 
             // Calculer l'angle entre le centre du cercle et la position du pic pour la rotation
-            const spikeAngle = Phaser.Math.Angle.Between(0, 0, x, y);
+            const spikeAngle = Phaser.Math.Angle.Between(circle.x, circle.y, circle.x + x, circle.y + y);
             killzone.setRotation(spikeAngle + Math.PI / 2); // Ajuster l'orientation du pic pour qu'il pointe vers l'extérieur
 
-            container.add(killzone);
             killzones.push(killzone);
-
             this.killzonesGroup.add(killzone); // Ajouter le killzone au groupe de killzones
+            circle.addKillzone(killzone); // Ajouter le killzone au cercle parent
         }
-
-        circle.setData('container', container);
     }
+
+
+
 
     generateCircles(width: number, height: number, numCircles: number) {
         for (let i = 0; i < numCircles; i++) {
@@ -188,7 +185,7 @@ export class Game extends Scene {
                 this.circleObjects.push(newCircle);
                 this.circleGroup.add(newCircle);
 
-                this.generateKillzones(newCircle, Phaser.Math.Between(1, 3)); // Placer entre 1 et 3 killzones par cercle
+                this.generateKillzones(newCircle, Phaser.Math.Between(0, 1)); // Placer entre 1 et 3 killzones par cercle
             }
         }
     }

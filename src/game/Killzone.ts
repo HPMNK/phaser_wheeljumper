@@ -1,30 +1,31 @@
-// Killzone.ts
 import Phaser from 'phaser';
 
 export class Killzone extends Phaser.Physics.Arcade.Sprite {
-    constructor(scene: Phaser.Scene, x: number, y: number, texture: string = 'spike') {
-        super(scene, x, y, texture);
-
-        // Configurer le sprite
-        this.setOrigin(0.5, 0.5);
-        this.setDisplaySize(30, 30); // Ajuster la taille des pics si nécessaire
-
-        // Ajouter le sprite à la scène
+    constructor(scene: Phaser.Scene, x: number, y: number) {
+        super(scene, x, y, 'spike');
         scene.add.existing(this);
-
-        // Activer la physique pour le sprite
         scene.physics.world.enable(this);
+
+        this.setOrigin(0.5, 0.5);
+
         const body = this.body as Phaser.Physics.Arcade.Body;
-        body.setSize(this.displayWidth * 0.5, this.displayHeight * 0.5);
-        body.setOffset(0, this.displayHeight * 0.25);
-        body.setAllowGravity(false);
+        body.setCircle(this.displayWidth / 3);
+        body.setOffset(0, -10);  // Assurer que le corps est centré sur le sprite
+        body.setImmovable(true);
+        body.moves = false; // Désactiver les mouvements automatiques
     }
 
-    update() {
-        // Ajouter des mises à jour personnalisées si nécessaire
+    updatePosition(x: number, y: number, circleX: number, circleY: number) {
+        this.setPosition(x, y);
+        const angle = Phaser.Math.Angle.Between(circleX, circleY, x, y);
+        this.setRotation(angle + Math.PI / 2);  // Ajuster l'angle pour que le sprite pointe vers l'extérieur
+
+        const body = this.body as Phaser.Physics.Arcade.Body;
+        body.x = x - body.halfWidth;
+        body.y = y - body.halfHeight;
     }
 
     static preload(scene: Phaser.Scene) {
-        scene.load.image('spike', '/assets/Spike.png');
+        scene.load.image('spike', '/assets/spike.png');
     }
 }
