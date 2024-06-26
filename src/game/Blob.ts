@@ -77,8 +77,8 @@ export class Blob extends Phaser.GameObjects.Container {
         });
     }
 
-    update(circleObjects: CircleObject[], killzones: Phaser.Physics.Arcade.Group) {
-        if (this.isDead) return; // Ne pas exécuter si déjà mort
+    update(time: number, delta: number, circleObjects: CircleObject[], killzones: Phaser.Physics.Arcade.Group) {
+        if (this.isDead) return;
         if (this.blobSprite) {
             if (!this.isGrounded) {
                 this.applyGravity();
@@ -97,6 +97,10 @@ export class Blob extends Phaser.GameObjects.Container {
         }
         this.y += this.velocityY;
         this.x += this.velocityX;
+        if (this.blobSprite && !this.isDead) { // Vérifier si blobSprite existe et n'est pas mort
+            this.blobSprite.setFrame(11); // Fixer sur la dernière frame de l'animation
+        }
+
     }
 
     updateBlobPosition() {

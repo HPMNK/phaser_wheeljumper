@@ -78,7 +78,7 @@ export class Game extends Scene {
             circle.update(time, delta);
         });
 
-        this.blob.update(this.circleObjects, this.killzonesGroup);
+        this.blob.update(time, delta, this.circleObjects, this.killzonesGroup);
 
         this.fpsText.setText('FPS: ' + this.game.loop.actualFps.toFixed(2));
 
