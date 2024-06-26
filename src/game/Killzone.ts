@@ -9,8 +9,8 @@ export class Killzone extends Phaser.Physics.Arcade.Sprite {
         this.setOrigin(0.5, 0.5);
 
         const body = this.body as Phaser.Physics.Arcade.Body;
-        body.setCircle(this.displayWidth / 3);
-        body.setOffset(0, -10);  // Assurer que le corps est centré sur le sprite
+        body.setCircle(this.displayWidth / 2);
+        body.setOffset(0, 0);  // Assurer que le corps est centré sur le sprite
         body.setImmovable(true);
         body.moves = false; // Désactiver les mouvements automatiques
     }
